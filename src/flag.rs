@@ -73,3 +73,68 @@ impl RwFlag {
         self.0.set(1)
     }
 }
+
+#[test]
+fn test_new_read() {
+    let flag = RwFlag::new_read();
+    assert!(flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(flag.is_this_writeable());
+}
+
+#[test]
+fn test_hold_to_read() {
+    let flag = RwFlag::new_read();
+    assert!(flag.hold_to_read());
+    assert!(flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(!flag.is_this_writeable());
+}
+
+#[test]
+fn test_read_to_hold() {
+    let flag = RwFlag::new_read();
+    assert!(flag.hold_to_read());
+    flag.read_to_hold();
+    assert!(flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(flag.is_this_writeable());
+}
+
+#[test]
+fn test_hold_to_write() {
+    let flag = RwFlag(Cell::new(0));
+    assert!(flag.hold_to_write());
+    assert!(!flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(!flag.is_this_writeable());
+}
+
+#[test]
+fn test_read_to_write() {
+    let flag = RwFlag::new_read();
+    assert!(flag.read_to_write());
+    assert!(!flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(!flag.is_this_writeable());
+}
+
+#[test]
+fn test_write_to_hold() {
+    let flag = RwFlag::new_read();
+    assert!(flag.read_to_write());
+    flag.write_to_hold();
+    assert!(flag.is_readable());
+    assert!(flag.is_writeable());
+    assert!(flag.is_this_writeable());
+}
+
+#[test]
+fn test_write_to_read() {
+    let flag = RwFlag::new_read();
+    assert!(flag.read_to_write());
+    flag.write_to_read();
+    assert!(flag.is_readable());
+    assert!(!flag.is_writeable());
+    assert!(flag.is_this_writeable());
+}
