@@ -117,6 +117,8 @@ fn test_read_to_write() {
     assert!(!flag.is_readable());
     assert!(!flag.is_writeable());
     assert!(!flag.is_this_writeable());
+    flag.hold_to_read();
+    assert!(!flag.read_to_write());
 }
 
 #[test]

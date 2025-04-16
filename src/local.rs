@@ -1,4 +1,4 @@
-﻿use crate::{RwRc, RwState};
+use crate::{RwRc, RwState};
 use std::ops::{Deref, DerefMut};
 
 /// 对 `RwRc<T>` 的只读借用。
@@ -212,6 +212,26 @@ fn test_read_write() {
         let reader = rwrc.read();
         assert_eq!(*reader, 100);
     }
+    rwrc.release();
+    // 测试hold状态,之后被其他对象获取全局写状态，进行读取，应该失败
+    {
+        let mut rwrc2 = rwrc.clone();
+        assert!(rwrc2.try_write_global());
+        assert!(rwrc.try_read().is_none()); // 修改这行，直接使用 assert!
+    }
+    //  测试hold状态,之后被其他对象获取全局写状态，进行写入，应该失败
+    {
+        let mut rwrc2 = rwrc.clone();
+        assert!(rwrc2.try_write_global());
+        assert!(rwrc.try_write().is_none());
+    }
+    //  测试数据有多个可读引用，有的可读引用想要转换成可写,应该失败
+    {
+        let mut rwrc2 = rwrc.clone();
+        assert!(rwrc.try_read_global());
+        assert!(rwrc2.try_read_global());
+        assert!(rwrc.try_write().is_none());
+    }
 }
 
 #[test]
@@ -225,4 +245,29 @@ fn test_multiple_readers() {
 
     assert_eq!(*reader1, 42);
     assert_eq!(*reader2, 42);
+}
+
+#[test]
+fn test_deref() {
+    let mut rwrc = RwRc::new(42);
+
+    // 测试 LocalMut 的不可变解引用
+    let writer = rwrc.write();
+    assert_eq!(*writer, 42); // 通过 Deref trait 进行不可变访问
+
+    // 测试多次解引用
+    let value_ref: &i32 = &writer;
+    assert_eq!(*value_ref, 42);
+
+    // 测试在不同状态下的解引用
+    drop(writer);
+    rwrc.release();
+    let writer = rwrc.write();
+    assert_eq!(*writer, 42); // Hold 状态获取写权限后解引用
+
+    // 测试复杂类型的解引用
+    let mut string_rc = RwRc::new(String::from("test"));
+    let string_writer = string_rc.write();
+    assert_eq!(string_writer.len(), 4); // 可以访问字符串的方法
+    assert_eq!(&*string_writer, "test"); // 可以解引用比较字符串内容
 }
