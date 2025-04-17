@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+#![deny(warnings, missing_docs)]
+
 //! RwRc - 带有读写状态的引用计数对象，可以在共享所有权的同时实现持续的访问控制
 //!
 //! 这个库提供了一个结合了 `Rc<T>` 的引用计数，以及 `RefCell` 的动态借用检查功能的智能指针。
@@ -325,4 +328,35 @@ fn test_multiple_readers() {
     rc2.release();
     rc3.release();
     assert!(rc1.try_write_global());
+}
+
+#[test]
+fn test_from() {
+    // 测试从基本类型转换
+    let rc: RwRc<i32> = 42.into();
+    assert!(matches!(rc.state, RwState::Read));
+    assert!(rc.is_readable());
+
+    // 测试从字符串转换
+    let rc: RwRc<String> = String::from("test").into();
+    assert!(matches!(rc.state, RwState::Read));
+    assert!(rc.is_readable());
+
+    // 测试显式使用 From trait
+    let rc = RwRc::from(100);
+    assert!(matches!(rc.state, RwState::Read));
+    assert!(rc.is_readable());
+}
+
+#[test]
+fn test_hold() {
+    let mut rc = RwRc::new(42);
+    assert!(rc.is_readable()); // 新建对象默认在读状态，应该可读
+
+    // 测试持有状态下的可读性
+    rc.release();
+    assert!(rc.rc.flag.is_readable()); // 确保全局状态可读
+    assert!(rc.is_readable()); // Hold状态且全局可读时应该可读
+    assert!(rc.is_writeable()); // Hold状态且全局可写时应该可写
+    assert!(rc.try_read_global()); // 单个实例hold状态设置读状态，应该是可读的
 }

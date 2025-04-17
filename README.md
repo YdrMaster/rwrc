@@ -8,5 +8,6 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/YdrMaster/rwrc)
 ![GitHub contributors](https://img.shields.io/github/contributors/YdrMaster/rwrc)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/YdrMaster/rwrc)
+[![codecov](https://codecov.io/github/YdrMaster/rwrc/branch/main/graph/badge.svg)](https://codecov.io/github/YdrMaster/rwrc)
 
 带有读写状态的引用计数对象，可以在共享所有权的同时实现持续的访问控制。

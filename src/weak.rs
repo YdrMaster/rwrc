@@ -260,3 +260,24 @@ fn test_weak_multi_hold() {
     // 此时弱引用无法恢复
     assert!(weak.hold().is_none());
 }
+
+#[test]
+fn test_weak_debug() {
+    let rc = RwRc::new(42);
+    let weak = rc.weak();
+
+    // 验证调试输出格式
+    let debug_str = format!("{:?}", weak);
+    assert!(debug_str.starts_with("RwWeak("));
+    assert!(debug_str.ends_with(")"));
+    assert!(debug_str.contains("0x")); // 应该包含指针地址
+
+    // 验证两个相同的弱引用有相同的调试输出
+    let weak2 = weak.clone();
+    assert_eq!(format!("{:?}", weak), format!("{:?}", weak2));
+
+    // 验证不同的弱引用有不同的调试输出
+    let rc2 = RwRc::new(100);
+    let weak3 = rc2.weak();
+    assert_ne!(format!("{:?}", weak), format!("{:?}", weak3));
+}
