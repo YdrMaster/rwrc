@@ -52,26 +52,17 @@ jobs:
           sarif_file: rust-clippy-results.sarif
           wait-for-processing: true
 
-  coverage:
-    needs: rust-clippy-analyze
-    name: coverage
-    runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Use latest toolchain
-        run: rustup update
+      - name: Install required cargo
+        run: cargo install cargo-tarpaulin
 
       - name: Generate code coverage
-        run: |
-          cargo  tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+        run:
+          cargo tarpaulin
+          --all-features
+          --workspace --timeout 120 --out xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
-          token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
